@@ -1,24 +1,26 @@
 import org.scalatest.funsuite.AnyFunSuite
 
+import scala.collection.mutable.ListBuffer
+
 class TestLex extends AnyFunSuite {
 
   // Unitary tests
   test("Test the lexString function") {
     val string = "\"hello\"1234"
-    val ans = JsonLexer.lexString(List[Any](), string)
+    val ans = JsonLexer.lexString(ListBuffer[Any](), string)
     assert(ans._1 == List("hello"))
     assert(ans._2 == "1234")
   }
 
   test("Test the lexInteger function"){
     val string = "1234 \n \"party:\"yes\""
-    val ans = JsonLexer.lexInteger(List[Any](), string)
+    val ans = JsonLexer.lexInteger(ListBuffer[Any](), string)
     assert(ans._1 == List("1234"))
   }
 
   test("Test the lex function on a JSON with integer values"){
     val jsonString = "{\n  \"fieldOne\" : 1,\n  \"fieldTwo\" : 2\n}"
-    val firstStep = JsonLexer.lex(List[Any](), jsonString)
+    val firstStep = JsonLexer.lex(ListBuffer[Any](), jsonString)
     assert(firstStep.length == 9)
   }
 
@@ -51,7 +53,7 @@ class TestLex extends AnyFunSuite {
 
   test("Parse a JSON that contains an array and a string value"){
     val jsonString = "{\n  \"fieldOne\" : [1,2,3]\n  \"fieldTwo\" : \"hey\"\n}"
-    val firstStep = JsonLexer.lex(List[Any](), jsonString)
+    val firstStep = JsonLexer.lex(ListBuffer[Any](), jsonString)
     val ans = JsonParser.parser(jsonString).asInstanceOf[Map[Any,Any]]
     assert(ans("fieldOne") == List("1","2","3"))
     assert("hey".equalsIgnoreCase(ans("fieldTwo").toString))

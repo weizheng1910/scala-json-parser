@@ -1,40 +1,42 @@
 import JsonParser.{JSON_QUOTE, JSON_SYNTAX, JSON_WHITESPACE}
+
 import scala.annotation.tailrec
+import scala.collection.mutable.ListBuffer
 import scala.util.matching.Regex
 
 object JsonLexer {
 
   @tailrec
-  def lex( array: List[Any],string: String): List[Any] = {
+  def lex( array: ListBuffer[Any],string: String): List[Any] = {
 
     val (a,s) = lexAll((array,string))
 
     if(s.isEmpty){
-      return a
+      return a.result()
     }
 
     lex(a,s)
   }
 
-  val lexAll: ((List[Any], String)) => (List[Any], String) = lexBoolean _ andThen lexString andThen lexInteger
+  val lexAll: ((ListBuffer[Any], String)) => (ListBuffer[Any], String) = lexBoolean _ andThen lexString andThen lexInteger
 
-  def lexAny(tuple: (List[Any], String)): (List[Any], String) = {
+  def lexAny(tuple: (ListBuffer[Any], String)): (ListBuffer[Any], String) = {
 
-    var a = tuple._1
-    var s = tuple._2
+    var elements = tuple._1
+    var remaining = tuple._2
 
-    while((JSON_WHITESPACE contains s.take(1)) || (JSON_SYNTAX contains s.take(1))){
-      if(JSON_SYNTAX contains s.take(1)){
-        a = a :+ s.take(1)
+    while((JSON_WHITESPACE contains remaining.take(1)) || (JSON_SYNTAX contains remaining.take(1))){
+      if(JSON_SYNTAX contains remaining.take(1)){
+       elements += remaining.take(1)
       }
 
-      s = s.substring(1)
+      remaining = remaining.substring(1)
     }
 
-    (a,s)
+    (elements,remaining)
   }
 
-  def lexString(tuple: (List[Any], String)): (List[Any], String) = {
+  def lexString(tuple: (ListBuffer[Any], String)): (ListBuffer[Any], String) = {
 
     val res = lexAny(tuple)
     val array = res._1
@@ -59,7 +61,7 @@ object JsonLexer {
     (array :+ splitArr._1, splitArr._2.substring(1))
   }
 
-  def lexInteger(tuple: (List[Any], String)): (List[Any], String) = {
+  def lexInteger(tuple: (ListBuffer[Any], String)): (ListBuffer[Any], String) = {
 
     val res = lexAny(tuple)
     val array = res._1
@@ -82,10 +84,10 @@ object JsonLexer {
 
     val arrSplit = str.splitAt(endIndex)
 
-    (array :+ arrSplit._1, arrSplit._2)
+    (array += arrSplit._1, arrSplit._2)
   }
 
-  def lexBoolean(tuple: (List[Any], String)): (List[Any], String) = {
+  def lexBoolean(tuple: (ListBuffer[Any], String)): (ListBuffer[Any], String) = {
 
     val res = lexAny(tuple)
     val array = res._1
@@ -95,13 +97,14 @@ object JsonLexer {
     val indexFalse = str.indexOf("false")
 
     if(indexTrue == 0){
-      (array :+ true, str.substring("true".length))
+      (array += true, str.substring("true".length))
     } else if(indexFalse == 0){
-      (array :+ false, str.substring("false".length))
+      (array += false, str.substring("false".length))
     } else {
       (array, str)
     }
 
   }
+
 
 }

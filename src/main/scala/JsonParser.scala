@@ -16,7 +16,7 @@ object JsonParser {
 
 
   def parser(jsonString: String): Object = {
-    parse(JsonLexer.lex(List[Any](),jsonString))._1
+    parse(JsonLexer.lex(ListBuffer[Any](),jsonString))._1
   }
 
   def parse(array: List[Any]): (Object,List[Any]) = {
@@ -57,9 +57,6 @@ object JsonParser {
   }
 
   def parseArray(list: List[Any]): (List[Any],List[Any]) = {
-
-    val endIndex =  list.indexOf(JSON_RIGHTBRACKET)
-
     var remaining = list
     val result = ListBuffer[Any]()
     while(remaining.nonEmpty && remaining.head != JSON_RIGHTBRACKET){
