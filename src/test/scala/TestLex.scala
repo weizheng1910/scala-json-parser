@@ -1,3 +1,4 @@
+import exception.InvalidSyntaxException
 import org.scalatest.funsuite.AnyFunSuite
 
 import scala.collection.mutable.ListBuffer
@@ -12,6 +13,11 @@ class TestLex extends AnyFunSuite {
     assert(ans._2 == "1234")
   }
 
+  test("Test the lexString function throwing exception") {
+    val string = "\"hello1234"
+    assertThrows[InvalidSyntaxException](JsonLexer.lexString(ListBuffer[Any](), string))
+  }
+
   test("Test the lexInteger function"){
     val string = "1234 \n \"party:\"yes\""
     val ans = JsonLexer.lexInteger(ListBuffer[Any](), string)
@@ -22,6 +28,12 @@ class TestLex extends AnyFunSuite {
     val jsonString = "{\n  \"fieldOne\" : 1,\n  \"fieldTwo\" : 2\n}"
     val firstStep = JsonLexer.lex(ListBuffer[Any](), jsonString)
     assert(firstStep.length == 9)
+  }
+
+  test("Test the lex function on an array of objects, each object contains an array"){
+    val jsonString = "[\n\t{\n\t\t\"color\": \"red\",\n\t\t\"value\": [1,2,3]\n\t}\n]"
+    val ans = JsonLexer.lex(ListBuffer[Any](),jsonString)
+    assert(ans.length == 17)
   }
 
   test("Test the parseArray function using an array that contains an object"){
@@ -43,6 +55,8 @@ class TestLex extends AnyFunSuite {
     val result = JsonParser.parseObject(array)
     assert(result != null)
   }
+
+
 
   // Full Tests
   test("Parse a JSON that contains integer values"){
@@ -71,5 +85,23 @@ class TestLex extends AnyFunSuite {
     val ans = JsonParser.parser(jsonString).asInstanceOf[List[Any]]
     assert(ans.length == 7)
   }
+
+  test("Parse an array containing 1 object, each object contains an array"){
+    val jsonString = "[\n\t{\n\t\t\"color\": \"red\",\n\t\t\"value\": [1,2,3]\n\t}\n]"
+    val ans = JsonParser.parser(jsonString).asInstanceOf[List[Any]]
+    assert(ans.length == 1)
+    assert(ans.head.asInstanceOf[Map[Any,Any]]("value") == List("1","2","3"))
+  }
+
+  test("Parse an array containing 7 object, each object contains an array"){
+    val jsonString = "[\n\t{\n\t\t\"color\": \"red\",\n\t\t\"value\": [1,2,3]\n\t},\n\t{\n\t\t\"color\": \"green\",\n\t\t\"value\": [1,2,3]\n\t},\n\t{\n\t\t\"color\": \"blue\",\n\t\t\"value\": [1,2,3]\n\t},\n\t{\n\t\t\"color\": \"cyan\",\n\t\t\"value\": [1,2,3]\n\t},\n\t{\n\t\t\"color\": \"magenta\",\n\t\t\"value\": [1,2,3]\n\t},\n\t{\n\t\t\"color\": \"yellow\",\n\t\t\"value\": [1,2,3]\n\t},\n\t{\n\t\t\"color\": \"black\",\n\t\t\"value\": [1,2,3]\n\t}\n]"
+    val ans = JsonParser.parser(jsonString).asInstanceOf[List[Any]]
+    assert(ans.length == 7)
+    assert(ans.head.asInstanceOf[Map[Any,Any]]("value") == List("1","2","3"))
+    assert(ans(4).asInstanceOf[Map[Any,Any]]("value") == List("1","2","3"))
+  }
+
+
+
 
 }

@@ -40,7 +40,7 @@ object JsonParser {
 
 
   def parseElement(list: List[Any]): (Option[Any], List[Any]) = {
-    if(list.head == JSON_LEFTBRACKET){
+    if(list.head.toString == JSON_LEFTBRACKET){
       val (actualArray,rem) = parseArray(list.tail)
       (Some(actualArray),rem)
     } else {

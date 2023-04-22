@@ -1,4 +1,5 @@
 import JsonParser.{JSON_QUOTE, JSON_SYNTAX, JSON_WHITESPACE}
+import exception.InvalidSyntaxException
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
@@ -22,7 +23,7 @@ object JsonLexer {
 
   def lexAny(tuple: (ListBuffer[Any], String)): (ListBuffer[Any], String) = {
 
-    var elements = tuple._1
+    val elements = tuple._1
     var remaining = tuple._2
 
     while((JSON_WHITESPACE contains remaining.take(1)) || (JSON_SYNTAX contains remaining.take(1))){
@@ -46,19 +47,19 @@ object JsonLexer {
       return (array ,str)
     }
 
-    if(str.substring(0,1) != JSON_QUOTE){
+    if(str.take(1) != JSON_QUOTE){
       return (array, str)
     }
 
-    var string = str.substring(1)
+    var string = str.tail
 
     if(!string.contains(JSON_QUOTE)) {
-      throw new RuntimeException("Invalid String")
+      throw new InvalidSyntaxException(s"Expected \" in the string: $string")
     }
 
     val splitArr = string.span(p => p.toString != JSON_QUOTE)
 
-    (array :+ splitArr._1, splitArr._2.substring(1))
+    (array += splitArr._1, splitArr._2.tail)
   }
 
   def lexInteger(tuple: (ListBuffer[Any], String)): (ListBuffer[Any], String) = {
@@ -78,7 +79,9 @@ object JsonLexer {
       case None => -1
     }
 
-    if(endIndex == -1){
+    val endOfElementIndex  = str.indexWhere(c => (JSON_SYNTAX contains c.toString) || (JSON_WHITESPACE contains c.toString))
+
+    if(endIndex == -1 || endOfElementIndex < endIndex){
       return (array, str)
     }
 
