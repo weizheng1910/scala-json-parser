@@ -18,7 +18,7 @@ class TestLex extends AnyFunSuite {
 
   test("Test the lex function on a JSON with integer values"){
     val jsonString = "{\n  \"fieldOne\" : 1,\n  \"fieldTwo\" : 2\n}"
-    val firstStep = JsonLexer.lex(jsonString, List[Any]())
+    val firstStep = JsonLexer.lex(List[Any](), jsonString)
     assert(firstStep.length == 9)
   }
 
@@ -51,7 +51,7 @@ class TestLex extends AnyFunSuite {
 
   test("Parse a JSON that contains an array and a string value"){
     val jsonString = "{\n  \"fieldOne\" : [1,2,3]\n  \"fieldTwo\" : \"hey\"\n}"
-    val firstStep = JsonLexer.lex(jsonString, List[Any]())
+    val firstStep = JsonLexer.lex(List[Any](), jsonString)
     val ans = JsonParser.parser(jsonString).asInstanceOf[Map[Any,Any]]
     assert(ans("fieldOne") == List("1","2","3"))
     assert("hey".equalsIgnoreCase(ans("fieldTwo").toString))

@@ -16,7 +16,7 @@ object JsonParser {
 
 
   def parser(jsonString: String): Object = {
-    parse(JsonLexer.lex(jsonString,List[Any]()))._1
+    parse(JsonLexer.lex(List[Any](),jsonString))._1
   }
 
   def parse(array: List[Any]): (Object,List[Any]) = {

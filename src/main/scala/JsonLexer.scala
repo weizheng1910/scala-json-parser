@@ -5,18 +5,18 @@ import scala.util.matching.Regex
 object JsonLexer {
 
   @tailrec
-  def lex(string: String, array: List[Any]): List[Any] = {
+  def lex( array: List[Any],string: String): List[Any] = {
 
     val (a,s) = lexAll((array,string))
 
-    if(s.length == 0){
+    if(s.isEmpty){
       return a
     }
 
-    lex(s,a)
+    lex(a,s)
   }
 
-  val lexAll = lexBoolean _ andThen lexString _ andThen lexInteger _
+  val lexAll: ((List[Any], String)) => (List[Any], String) = lexBoolean _ andThen lexString andThen lexInteger
 
   def lexAny(tuple: (List[Any], String)): (List[Any], String) = {
 
@@ -40,7 +40,7 @@ object JsonLexer {
     val array = res._1
     val str = res._2
 
-    if(str.length == 0){
+    if(str.isEmpty){
       return (array ,str)
     }
 
@@ -65,7 +65,7 @@ object JsonLexer {
     val array = res._1
     val str = res._2
 
-    if(str.length == 0){
+    if(str.isEmpty){
       return (array ,str)
     }
 
@@ -82,7 +82,7 @@ object JsonLexer {
 
     val arrSplit = str.splitAt(endIndex)
 
-    ((array :+ arrSplit._1), arrSplit._2)
+    (array :+ arrSplit._1, arrSplit._2)
   }
 
   def lexBoolean(tuple: (List[Any], String)): (List[Any], String) = {
