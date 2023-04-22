@@ -8,8 +8,8 @@ object JsonParser {
   val JSON_LEFTBRACE = "{"
   val JSON_RIGHTBRACE = "}"
   val JSON_QUOTE = "\""
-  val JSON_WHITESPACE = Array(" ", "\t", "\b", "\n", "\r")
-  val JSON_SYNTAX = Array(JSON_COMMA, JSON_COLON, JSON_LEFTBRACKET, JSON_RIGHTBRACKET,
+  val JSON_WHITESPACE: Array[String] = Array(" ", "\t", "\b", "\n", "\r")
+  val JSON_SYNTAX: Array[String] = Array(JSON_COMMA, JSON_COLON, JSON_LEFTBRACKET, JSON_RIGHTBRACKET,
   JSON_LEFTBRACE, JSON_RIGHTBRACE)
 
 
@@ -24,21 +24,21 @@ object JsonParser {
     } else if(array.head == JSON_LEFTBRACKET){
       parseArray(array.tail)
     } else {
-      throw new RuntimeException("Invalid");
+      throw new RuntimeException("Invalid")
     }
   }
 
 
   def parseKV(list: List[Any]): (Option[(Any,Any)],List[Any]) ={
     val (actualKey,rem) = parseKey(list)
-    if(rem(0) != JSON_COLON) throw new RuntimeException("Key Value Exception: Key Value pair must have colon!")
+    if(rem.head != JSON_COLON) throw new RuntimeException("Key Value Exception: Key Value pair must have colon!")
     val (actualValue,rem1) = parseValue(rem.tail)
     (Some(actualKey.get,actualValue.get),rem1)
   }
 
 
   def parseElement(list: List[Any]): (Option[Any], List[Any]) = {
-    if(list.head == JSON_LEFTBRACKET.toString){
+    if(list.head == JSON_LEFTBRACKET){
       val (actualArray,rem) = parseArray(list.tail)
       (Some(actualArray),rem)
     } else {
@@ -56,10 +56,11 @@ object JsonParser {
 
   def parseArray(list: List[Any]): (List[Any],List[Any]) = {
 
+    val endIndex =  list.indexOf(JSON_RIGHTBRACKET)
+
     var remaining = list
     val result = ListBuffer[Any]()
-
-    while(remaining.size !=0 && remaining.head != JSON_RIGHTBRACKET){
+    while(remaining.nonEmpty && remaining.head != JSON_RIGHTBRACKET){
       if((JSON_WHITESPACE contains remaining.head.toString)
         || JSON_COMMA == remaining.head.toString){
         remaining = remaining.tail
@@ -90,7 +91,7 @@ object JsonParser {
 
     var remaining:List[Any] = list
 
-    while(remaining.size != 0 && remaining.head != JSON_RIGHTBRACE){
+    while(remaining.nonEmpty && remaining.head != JSON_RIGHTBRACE){
 
       if((JSON_WHITESPACE contains remaining.head.toString)
         || JSON_COMMA == remaining.head.toString){
