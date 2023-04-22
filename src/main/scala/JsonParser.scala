@@ -1,3 +1,5 @@
+import scala.collection.mutable.ListBuffer
+
 object JsonParser {
   val JSON_COMMA = ","
   val JSON_COLON = ":"
@@ -10,73 +12,85 @@ object JsonParser {
   val JSON_SYNTAX = Array(JSON_COMMA, JSON_COLON, JSON_LEFTBRACKET, JSON_RIGHTBRACKET,
   JSON_LEFTBRACE, JSON_RIGHTBRACE)
 
-  // Entry point!
-  def parser(jsonString: String): Map[Any,Any] = {
-    parse(JsonLexer.lex(jsonString,List[Any]()))
+
+  def parser(jsonString: String): Object = {
+    parse(JsonLexer.lex(jsonString,List[Any]()))._1
   }
 
-  def parse(array: List[Any]): Map[Any,Any] = {
+  def parse(array: List[Any]): (Object,List[Any]) = {
 
     if (array.head == JSON_LEFTBRACE) {
       parseObject(array.tail)
+    } else if(array.head == JSON_LEFTBRACKET){
+      parseArray(array.tail)
     } else {
-      throw new RuntimeException("JSON Object must start with left brace!")
+      throw new RuntimeException("Invalid");
     }
-
   }
 
 
-  def parseKV(array: List[Any]): Tuple2[Option[Tuple2[Any,Any]],List[Any]] ={
-    val (actualKey,rem) = parseKey(array)
+  def parseKV(list: List[Any]): (Option[(Any,Any)],List[Any]) ={
+    val (actualKey,rem) = parseKey(list)
     if(rem(0) != JSON_COLON) throw new RuntimeException("Key Value Exception: Key Value pair must have colon!")
     val (actualValue,rem1) = parseValue(rem.tail)
     (Some(actualKey.get,actualValue.get),rem1)
   }
 
 
-  def parseElement(array: List[Any]): Tuple2[Option[Any], List[Any]] = {
-    if(array(0) == JSON_LEFTBRACKET.toString){
-      val (actualArray,rem) = parseArray(array.tail)
+  def parseElement(list: List[Any]): (Option[Any], List[Any]) = {
+    if(list.head == JSON_LEFTBRACKET.toString){
+      val (actualArray,rem) = parseArray(list.tail)
       (Some(actualArray),rem)
     } else {
-      (Some(array(0)), array.tail)
+      (Some(list.head), list.tail)
     }
   }
 
-  def parseKey(array: List[Any]): Tuple2[Option[Any], List[Any]] = {
-    parseElement(array)
+  def parseKey(list: List[Any]): (Option[Any], List[Any]) = {
+    parseElement(list)
   }
 
-  def parseValue(array: List[Any]): Tuple2[Option[Any], List[Any]] = {
-    parseElement(array)
+  def parseValue(list: List[Any]): (Option[Any], List[Any]) = {
+    parseElement(list)
   }
 
-  def parseArray(array: List[Any]): Tuple2[List[Any],List[Any]] = {
+  def parseArray(list: List[Any]): (List[Any],List[Any]) = {
 
-    val endIndex =  array.indexOf(JSON_RIGHTBRACKET)
+    var remaining = list
+    val result = ListBuffer[Any]()
 
-    val elements: List[Any] = for {
-      i <- List.range(0,endIndex)
-      if(i % 2 == 0)
-    } yield (array(i))
+    while(remaining.size !=0 && remaining.head != JSON_RIGHTBRACKET){
+      if((JSON_WHITESPACE contains remaining.head.toString)
+        || JSON_COMMA == remaining.head.toString){
+        remaining = remaining.tail
+      } else if(remaining.head == JSON_LEFTBRACE){
+        val res = parseObject(remaining.tail)
+        result += res._1
+        remaining = res._2
+      } else {
+        result += remaining.head
+        remaining = remaining.tail
+      }
+    }
 
-    val invalidElements = elements.find( e => JSON_SYNTAX contains e.toString)
-    if(invalidElements.nonEmpty) throw new RuntimeException("Invalid JSON Syntax")
+    if(remaining.head == JSON_RIGHTBRACKET){
+     remaining = remaining.tail
+    }
 
-    (elements, array.drop(endIndex+1))
+    (result.result(), remaining)
   }
 
-  def parseObject(array: List[Any]): Map[Any,Any] ={
+  def parseObject(list: List[Any]): (Map[Any,Any], List[Any]) ={
 
     var map: Map[Any,Any] = Map.empty
 
-    if(array(1) == JSON_RIGHTBRACE){
-      return map
+    if(list.head == JSON_RIGHTBRACE){
+      return (map,list.tail)
     }
 
-    var remaining:List[Any] = array
+    var remaining:List[Any] = list
 
-    while(remaining.size != 0 && remaining(0) != JSON_RIGHTBRACE){
+    while(remaining.size != 0 && remaining.head != JSON_RIGHTBRACE){
 
       if((JSON_WHITESPACE contains remaining.head.toString)
         || JSON_COMMA == remaining.head.toString){
@@ -92,7 +106,7 @@ object JsonParser {
       remaining = rem
     }
 
-   map
+    (map,remaining.tail)
   }
 
 
