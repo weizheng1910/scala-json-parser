@@ -56,8 +56,6 @@ class TestLex extends AnyFunSuite {
     assert(result != null)
   }
 
-
-
   // Full Tests
   test("Parse a JSON that contains integer values"){
     val jsonString = "{\n  \"fieldOne\" : 1,\n  \"fieldTwo\" : 2\n}"
@@ -101,7 +99,12 @@ class TestLex extends AnyFunSuite {
     assert(ans(4).asInstanceOf[Map[Any,Any]]("value") == List("1","2","3"))
   }
 
-
-
+  test("Parse an array containing one object. The object contains an array containing one object."){
+    val jsonString = "[\n\t{\n\t\t\"color\": \"red\",\n\t\t\"value\": [{\"key\" : \"value\"}]\n\t}\n]"
+    val ans = JsonParser.parser(jsonString).asInstanceOf[List[Any]]
+    val obj = ans.head.asInstanceOf[Map[Any,Any]]
+    assert(obj("color") == "red")
+    assert(obj("value") == List(Map.apply(("key","value"))))
+  }
 
 }

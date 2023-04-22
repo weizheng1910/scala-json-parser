@@ -1,3 +1,3 @@
 package exception
 
-class InvalidSyntaxException(message: String) extends RuntimeException{}
+class InvalidSyntaxException(message: String) extends RuntimeException(message){}
