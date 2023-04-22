@@ -1,3 +1,5 @@
+import exception.InvalidSyntaxException
+
 import scala.collection.mutable.ListBuffer
 
 object JsonParser {
@@ -24,14 +26,14 @@ object JsonParser {
     } else if(array.head == JSON_LEFTBRACKET){
       parseArray(array.tail)
     } else {
-      throw new RuntimeException("Invalid")
+      throw new InvalidSyntaxException("Invalid starting character")
     }
   }
 
 
   def parseKV(list: List[Any]): (Option[(Any,Any)],List[Any]) ={
     val (actualKey,rem) = parseKey(list)
-    if(rem.head != JSON_COLON) throw new RuntimeException("Key Value Exception: Key Value pair must have colon!")
+    if(rem.head != JSON_COLON) throw new InvalidSyntaxException("Expect a ':' but actually get a " + rem.head)
     val (actualValue,rem1) = parseValue(rem.tail)
     (Some(actualKey.get,actualValue.get),rem1)
   }
